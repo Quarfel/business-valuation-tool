@@ -1,0 +1,214 @@
+/* src/App.css */
+body {
+  font-family: sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  background-color: #f4f7f6;
+  color: #333;
+}
+
+.App {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem 2rem;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.App-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.App-header h1 {
+    color: #2c3e50;
+}
+
+/* Form Specific Styles */
+.multi-step-form {
+    /* Add styles if needed */
+}
+
+.step {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  background-color: #fdfdfd;
+}
+
+.step h2 {
+    margin-top: 0;
+    color: #3498db;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.question {
+  margin-bottom: 1.5rem;
+}
+
+.question > label { /* The main question text */
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.75rem;
+  color: #555;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* Space between radio buttons */
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.option:hover {
+    background-color: #ecf0f1;
+}
+
+.option input[type="radio"] {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.option label {
+  cursor: pointer;
+  flex-grow: 1;
+}
+
+
+/* Progress Indicator */
+.progress-indicator {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.progress-indicator p {
+    margin-bottom: 0.5rem;
+    font-size: 0.9em;
+    color: #555;
+}
+
+.progress-bar-container {
+  width: 100%;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  height: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #3498db;
+  width: 0%; /* Initial width */
+  transition: width 0.3s ease-in-out;
+  border-radius: 5px;
+}
+
+/* Navigation Buttons */
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.navigation-buttons button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.navigation-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.navigation-buttons button:first-of-type { /* Previous button */
+  background-color: #7f8c8d;
+  color: white;
+}
+.navigation-buttons button:first-of-type:not(:disabled):hover {
+  background-color: #95a5a6;
+}
+
+
+.navigation-buttons button:last-of-type { /* Next/Submit button */
+  background-color: #2ecc71;
+  color: white;
+}
+.navigation-buttons button:last-of-type:not(:disabled):hover {
+  background-color: #27ae60;
+}
+
+/* Submission Result */
+.submission-result {
+    text-align: center;
+    padding: 2rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    background-color: #fdfdfd;
+}
+.submission-result h2 {
+    color: #2ecc71; /* Green for success */
+}
+.submission-result p {
+    font-size: 1.1em;
+}
+.submission-result.error h2 {
+    color: #e74c3c; /* Red for error */
+}
+/* src/App.css */
+/* ... (keep existing styles) ... */
+
+.number-input,
+.select-input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Include padding and border in element's total width/height */
+  font-size: 1rem;
+}
+
+.select-input:disabled {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+}
+
+
+.feedback-section ul {
+    margin-top: 0.5rem;
+    margin-left: 1.5rem; /* Indent list */
+    padding-left: 0; /* Reset padding if needed */
+    list-style: disc; /* Use standard bullets */
+}
+
+.feedback-section li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.valuation-commentary { /* Adjust existing style slightly if needed */
+    font-size: 1em;
+    color: #555;
+    text-align: center;
+    margin-top: -0.5rem; /* Reduce space after big number */
+    margin-bottom: 1.5rem;
+}
