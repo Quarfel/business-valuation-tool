@@ -14,7 +14,7 @@ import ScoreRadarChart from './ScoreRadarChart';   // Componente del gráfico (p
 import { ScoringAreas } from '../../scoringAreas.js';
 
 // Definición de las pestañas
-const TABS = [
+const FULL_MODE_TABS = [
   { id: 'snapshot', label: 'Valuation Summary' },
   { id: 'scores', label: 'Score Detail' },
   { id: 'roadmap', label: 'Roadmap' },
@@ -22,37 +22,84 @@ const TABS = [
 ];
 
 // El componente principal de resultados
-function ResultsDisplay({
-  calculationResult,
-  onStartOver,
-  onBackToEdit,
-  consultantCalendlyLink,
-  userEmail,
-  formData
+function ResultsDisplay({ 
+    calculationResult, 
+    onStartOver, 
+    onBackToEdit, // Solo para modo 'full'
+    formData, // Para mostrar el email del seller en el resumen si es necesario
+    consultantCalendlyLink,
+    userEmail // Este es el email del usuario logueado o el del formData
 }) {
-  // --- Estados ---
-  const [activeTab, setActiveTab] = useState(TABS[0].id);
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  // Ref para el contenedor OCULTO del gráfico
+  
+ const [activeTab, setActiveTab] = useState(FULL_MODE_TABS[0].id); // Usa FULL_MODE_TABS
   const hiddenChartRef = useRef(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   // --- Manejo de Carga ---
   if (!calculationResult) {
     return <div className="submission-result">Loading results...</div>;
   }
 
-  // --- Extracción de Datos ---
   const {
+    mode, // 'jr_vc_summary', 'jr_vc_summary_error', o 'full_valuation'
+    errorMessage, // Solo para 'jr_vc_summary_error'
+    // Los siguientes son principalmente para 'full_valuation', pero algunos pueden estar en 'jr_vc_summary'
     stage = 'N/A',
     adjEbitda = 0,
     baseMultiple = 0,
     maxMultiple = 0,
     finalMultiple = 0,
     estimatedValuation = 0,
-    scores = {},
-    roadmap = [],
-    scorePercentage = 0
-  } = calculationResult || {};
+    scores = {}, // Para 'full_valuation' son los detallados, para 'jr_vc_summary' es un placeholder
+    roadmap = [], // Para 'full_valuation' es el detallado, para 'jr_vc_summary' es el resumen VC
+    scorePercentage = 0 // Para 'full_valuation' es el real, para 'jr_vc_summary' es el asumido
+  } = calculationResult;
+
+ if (mode === 'jr_vc_summary') {
+        return (
+            <div className="submission-result jr-vc-summary" style={{ padding: '20px', border: '1px solid #ddd', borderRadius: '8px', backgroundColor: '#f9f9f9', maxWidth: '700px', margin: '20px auto' }}>
+                <h2 style={{ textAlign: 'center', color: '#333', borderBottom: '2px solid #3498db', paddingBottom: '10px', marginBottom: '20px' }}>
+                    Jr. VC - Preliminary Assessment Summary
+                </h2>
+                
+                {roadmap && roadmap.map((item, index) => (
+                    <div key={index} className="roadmap-item-summary" style={{ marginBottom: '25px', paddingBottom: '15px', borderBottom: index < roadmap.length - 1 ? '1px dotted #ccc' : 'none' }}>
+                        <h3 style={{ color: '#2c3e50', marginBottom: '8px' }}>{item.title}</h3>
+                        {item.rationale && <p style={{ fontStyle: 'italic', color: '#555', marginBottom: '10px', lineHeight: '1.6' }}>{item.rationale}</p>}
+                        {item.actionSteps && Array.isArray(item.actionSteps) && (
+                            <ul style={{ listStylePosition: 'inside', paddingLeft: '5px', margin: '0' }}>
+                                {item.actionSteps.map((step, stepIdx) => <li key={stepIdx} style={{ marginBottom: '6px', lineHeight: '1.6' }}>{step}</li>)}
+                            </ul>
+                        )}
+                    </div>
+                ))}
+                
+                <hr style={{ margin: '25px 0' }}/>
+
+                <div className="jr-vc-actions" style={{ textAlign: 'center', marginTop: '20px' }}>
+                    <button 
+                        type="button" 
+                        onClick={onStartOver} 
+                        style={{ ...styles.actionButton, backgroundColor: '#5bc0de', color: 'white', padding: '12px 25px', fontSize: '1.1em' }} // Estilo de ejemplo
+                    >
+                        Start New VC Assessment
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+  if (mode === 'jr_vc_summary_error') {
+    return (
+        <div className="submission-result error" style={{ padding: '20px', border: '1px solid #e74c3c', borderRadius: '8px', backgroundColor: '#fceded', maxWidth: '700px', margin: '20px auto' }}>
+            <h2 style={{color: '#c0392b'}}>Preliminary Analysis Error</h2>
+            <p style={{color: '#c0392b'}}>{errorMessage || "An unknown error occurred."}</p>
+            <button type="button" onClick={onStartOver} style={{ ...styles.actionButton, backgroundColor: '#7f8c8d', color: 'white', marginTop: '15px', padding: '10px 20px', fontSize: '1em' }}>
+                Start New VC Assessment
+            </button>
+        </div>
+    );
+  }
 
   // --- FUNCIÓN FINAL PARA DESCARGAR PDF CON GRÁFICO ---
   const handleDownloadPdfWithChart = async () => {
@@ -124,41 +171,25 @@ function ResultsDisplay({
 
   // --- FUNCIÓN CORRECTA PARA RENDERIZAR CONTENIDO DE PESTAÑA ---
   const renderTabContent = () => {
-      console.log(`--- renderTabContent: activeTab = '${activeTab}'`);
       switch (activeTab) {
-        case 'snapshot':
-          return <ValuationSnapshot
-                    stage={stage} adjEbitda={adjEbitda} baseMultiple={baseMultiple}
-                    maxMultiple={maxMultiple} finalMultiple={finalMultiple}
-                    estimatedValuation={estimatedValuation} scorePercentage={scorePercentage}
-                 />;
-        case 'scores':
-          // ScoreDetails ya no necesita la ref
-          return <ScoreDetails scores={scores} />;
-        case 'roadmap':
-           return <RoadmapSection roadmap={roadmap} stage={stage} />;
-        case 'discuss':
-          return <DiscussTabContent
-                    calendlyLink={consultantCalendlyLink} userEmail={userEmail}
-                 />;
-        default:
-          console.log("--- renderTabContent: Reached DEFAULT case!");
-          return <div>Select a tab</div>;
+        case 'snapshot': return <ValuationSnapshot stage={stage} adjEbitda={adjEbitda} baseMultiple={baseMultiple} maxMultiple={maxMultiple} finalMultiple={finalMultiple} estimatedValuation={estimatedValuation} scorePercentage={scorePercentage} />;
+        case 'scores': return <ScoreDetails scores={scores} />; // scores aquí son los detallados del modo full
+        case 'roadmap': return <RoadmapSection roadmap={roadmap} stage={stage} />; // roadmap aquí es el detallado del modo full
+        case 'discuss': return <DiscussTabContent calendlyLink={consultantCalendlyLink} userEmail={userEmail} />;
+        default: return <div>Select a tab</div>;
       }
-  };
+  };M
   // --- FIN renderTabContent ---
 
 
-  return (
+   return (
     <div className="submission-result results-display">
-
-      {/* Navegación de Pestañas */}
+      {/* Navegación de Pestañas (SOLO PARA MODO FULL) */}
       <div className="results-tabs-nav" style={styles.tabNav}>
-        {TABS.map((tab) => (
+        {FULL_MODE_TABS.map((tab) => ( // <--- CORRECCIÓN AQUÍ
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            // Usar estilos directamente
             style={activeTab === tab.id ? styles.tabButtonActive : styles.tabButton}
             className={`tab-button ${activeTab === tab.id ? 'active' : ''} ${tab.id === 'discuss' ? 'discuss-tab-button' : ''}`}
           >
@@ -166,58 +197,29 @@ function ResultsDisplay({
           </button>
         ))}
       </div>
-
-      {/* Contenido de la Pestaña Activa */}
       <div className="results-tab-content" style={styles.tabContent}>
         {renderTabContent()}
       </div>
-
-      {/* --- CONTENEDOR OCULTO ACTIVO PARA CAPTURAR GRÁFICO --- */}
-      <div
-          ref={hiddenChartRef}
-          style={{
-              position: 'absolute',
-              left: '-9999px',
-              top: '-9999px',
-              width: '600px', // Ancho fijo razonable para captura
-              height: '450px', // Alto fijo razonable para captura
-              padding: '10px',
-              backgroundColor: 'white',
-              boxSizing: 'content-box',
-              // zIndex: -1 // Opcional si interfiere
-          }}
-          aria-hidden="true" // Ocultar de lectores de pantalla
-      >
-           {/* Renderizar el gráfico aquí SOLO para la captura */}
-           {scores && Object.keys(scores).length > 0 ? (
+      <div ref={hiddenChartRef} style={{ position: 'absolute', left: '-9999px', /*...*/ }} aria-hidden="true">
+           {scores && Object.keys(scores).length > 0 && Object.values(scores).some(s => s > 0) && (mode === 'full_valuation' || !mode) ? ( // Asumir !mode es full por defecto
               <ScoreRadarChart scores={scores} />
-           ) : (
-              <div>{/* Placeholder or nothing */}</div>
-           )}
+           ) : null}
       </div>
-      {/* --- FIN CONTENEDOR OCULTO --- */}
-
-      {/* Disclaimer */}
-      <p style={styles.disclaimer}>
-           Disclaimer: This is a preliminary, automated estimate for informational purposes only...
-      </p>
-
-      {/* CTAs y Acciones */}
+      <p style={styles.disclaimer}>Disclaimer: This valuation is an estimate...</p>
       <div className="results-actions-footer" style={styles.actionsFooter}>
-           {/* Pasar props correctos a ResultsCTA */}
-           <ResultsCTA
-               onDownloadClick={handleDownloadPdfWithChart}
-               isLoading={isGeneratingPdf}
-           />
-           {/* Botones originales */}
+           {(mode === 'full_valuation' || !mode) && ( // Asumir !mode es full por defecto
+             <ResultsCTA onDownloadClick={handleDownloadPdfWithChart} isLoading={isGeneratingPdf} />
+           )}
            <button type="button" onClick={onStartOver} className="start-over-button" style={styles.actionButton}>Start Over</button>
-           <button type="button" onClick={onBackToEdit} className="back-to-edit-button" style={styles.actionButton}>Back to Edit</button>
+           {(mode === 'full_valuation' || !mode) && onBackToEdit && ( // Asumir !mode es full por defecto
+             <button type="button" onClick={onBackToEdit} className="back-to-edit-button" style={styles.actionButton}>Back to Edit</button>
+           )}
       </div>
     </div>
   );
 }
 
-// Estilos (puedes añadir los específicos de discuss si quieres)
+// Estilos (como los tenías, asegúrate que son correctos)
 const styles = {
   tabNav: { borderBottom: '1px solid #ccc', marginBottom: '0px', paddingLeft: '10px', display: 'flex', gap: '2px' },
   tabButton: { padding: '10px 15px', cursor: 'pointer', border: '1px solid #ccc', borderBottom: '1px solid #ccc', background: '#eee', borderTopLeftRadius: '5px', borderTopRightRadius: '5px', opacity: 0.7, marginBottom: '-1px', position: 'relative', zIndex: 1, color: '#333', transition: 'background-color 0.2s, color 0.2s' },
@@ -227,7 +229,5 @@ const styles = {
   actionsFooter: { textAlign: 'center', marginTop: '2rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' },
   actionButton: { padding: '10px 20px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '1em' }
 };
-
-// No necesitamos combinedStyles si no aplicamos estilos dinámicos complejos a los botones aquí
 
 export default ResultsDisplay;

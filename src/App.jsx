@@ -32,7 +32,7 @@ function App() {
         
       <Routes>
         {/* === Rutas Públicas === */}
-        <Route path="/" element={<MultiStepForm />} />
+        <Route path="/" element={<MultiStepForm operatingMode={'short'} />} />
         <Route path="/assessment/continue" element={<AssessmentContinuation />} />
         <Route path="/request-link" element={<RequestNewLink />} />
 
